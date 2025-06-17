@@ -129,7 +129,7 @@ public class RestPrometheusMetricsAction extends BaseRestHandler {
                             );
                             collector.registerMetrics();
                             collector.updateMetrics(
-                                    nodeName, nodeId, response.getClusterHealth(), response.getNodeStats(),
+                                    nodeName, nodeId, response.getMainResponse(), response.getClusterHealth(), response.getNodeStats(),
                                     response.getIndicesStats(), response.getClusterStatsData());
                             textContent = collector.getTextContent();
                         } catch (Exception ex) {

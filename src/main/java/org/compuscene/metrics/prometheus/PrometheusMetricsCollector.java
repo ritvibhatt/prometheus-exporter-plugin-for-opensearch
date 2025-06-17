@@ -23,6 +23,7 @@ import org.opensearch.action.admin.cluster.node.stats.NodeStats;
 import org.opensearch.action.admin.indices.stats.CommonStats;
 import org.opensearch.action.admin.indices.stats.IndexStats;
 import org.opensearch.action.admin.indices.stats.IndicesStatsResponse;
+import org.opensearch.action.main.MainResponse;
 import org.opensearch.cluster.health.ClusterIndexHealth;
 import org.opensearch.cluster.node.DiscoveryNodeRole;
 import org.opensearch.common.Nullable;
@@ -108,9 +109,12 @@ public class PrometheusMetricsCollector {
         catalog.registerClusterGauge("cluster_is_timedout_bool", "Is the cluster timed out ?");
 
         catalog.registerClusterGauge("cluster_inflight_fetch_number", "Number of in flight fetches");
+
+        catalog.registerClusterGauge("version", "Constant metric with version info as labels", "cluster_uuid",
+                "version", "build_date", "build_hash", "lucene_version");
     }
 
-    private void updateClusterMetrics(@Nullable ClusterHealthResponse chr) {
+    private void updateClusterMetrics(@Nullable ClusterHealthResponse chr, @Nullable MainResponse mr) {
         if (chr != null) {
             catalog.setClusterGauge("cluster_status", chr.getStatus().value());
 
@@ -132,6 +136,11 @@ public class PrometheusMetricsCollector {
             catalog.setClusterGauge("cluster_is_timedout_bool", chr.isTimedOut() ? 1 : 0);
 
             catalog.setClusterGauge("cluster_inflight_fetch_number", chr.getNumberOfInFlightFetch());
+        }
+
+        if (mr != null) {
+            catalog.setClusterGauge("version", 1, mr.getClusterUuid(), mr.getVersion().toString(), mr.getBuild().date(),
+                    mr.getBuild().hash(), mr.getVersion().luceneVersion.toString());
         }
     }
 
@@ -916,12 +925,14 @@ public class PrometheusMetricsCollector {
      *
      * @param originNodeName            Originating node name.
      * @param originNodeId              Originating node ID.
+     * @param mainResponse              MainResponse
      * @param clusterHealthResponse     ClusterHealthResponse
      * @param nodeStats                 NodeStats filtered using nodes filter
      * @param indicesStats              IndicesStatsResponse
      * @param clusterStatsData          ClusterStatsData
      */
     public void updateMetrics(String originNodeName, String originNodeId,
+                              @Nullable MainResponse mainResponse,
                               @Nullable ClusterHealthResponse clusterHealthResponse,
                               NodeStats[] nodeStats,
                               @Nullable IndicesStatsResponse indicesStats,
@@ -930,7 +941,7 @@ public class PrometheusMetricsCollector {
                 new Tuple<>(originNodeName, originNodeId),
                 "metrics_generate_time_seconds");
 
-        updateClusterMetrics(clusterHealthResponse);
+        updateClusterMetrics(clusterHealthResponse, mainResponse);
         for (NodeStats s : nodeStats) {
             // For each node we create specific context and pass it to all metrics
             String nodeName = s.getNode().getName();

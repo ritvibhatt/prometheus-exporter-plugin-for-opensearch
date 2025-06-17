@@ -32,6 +32,9 @@ import org.opensearch.action.admin.cluster.state.ClusterStateRequest;
 import org.opensearch.action.admin.cluster.state.ClusterStateResponse;
 import org.opensearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.opensearch.action.admin.indices.stats.IndicesStatsResponse;
+import org.opensearch.action.main.MainAction;
+import org.opensearch.action.main.MainResponse;
+import org.opensearch.action.main.MainRequest;
 import org.opensearch.action.support.ActionFilters;
 import org.opensearch.action.support.HandledTransportAction;
 import org.opensearch.client.Client;
@@ -94,12 +97,14 @@ public class TransportNodePrometheusMetricsAction extends HandledTransportAction
         private final NodesStatsRequest nodesStatsRequest;
         private final IndicesStatsRequest indicesStatsRequest;
         private final ClusterStateRequest clusterStateRequest;
+        private final MainRequest mainRequest;
 
         private ClusterHealthResponse clusterHealthResponse = null;
         private NodesInfoResponse localNodesInfoResponse = null;
         private NodesStatsResponse nodesStatsResponse = null;
         private IndicesStatsResponse indicesStatsResponse = null;
         private ClusterStateResponse clusterStateResponse = null;
+        private MainResponse mainResponse = null;
 
         // read the state of prometheus dynamic settings only once at the beginning of the async request
         private final boolean isPrometheusIndices = prometheusSettings.getPrometheusIndices();
@@ -118,6 +123,8 @@ public class TransportNodePrometheusMetricsAction extends HandledTransportAction
         // stay consistent.
         private AsyncAction(ActionListener<NodePrometheusMetricsResponse> listener) {
             this.listener = listener;
+
+            this.mainRequest = new MainRequest();
 
             // Note: when using ClusterHealthRequest in Java, it pulls data at the shards level, according to ES source
             // code comment this is "so it is backward compatible with the transport client behaviour".
@@ -149,7 +156,7 @@ public class TransportNodePrometheusMetricsAction extends HandledTransportAction
         }
 
         private void gatherRequests() {
-            listener.onResponse(buildResponse(clusterHealthResponse, localNodesInfoResponse, nodesStatsResponse, indicesStatsResponse,
+            listener.onResponse(buildResponse(mainResponse, clusterHealthResponse, localNodesInfoResponse, nodesStatsResponse, indicesStatsResponse,
                     clusterStateResponse));
         }
 
@@ -231,16 +238,32 @@ public class TransportNodePrometheusMetricsAction extends HandledTransportAction
                 }
             };
 
+        private final ActionListener<MainResponse> mainResponseActionListener =
+            new ActionListener<MainResponse>() {
+                @Override
+                public void onResponse(MainResponse response) {
+                    mainResponse = response;
+                    client.admin().cluster().health(healthRequest, clusterHealthResponseActionListener);
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    listener.onFailure(new OpenSearchException("Main request failed", e));
+                }
+            };
+
         private void start() {
-            client.admin().cluster().health(healthRequest, clusterHealthResponseActionListener);
+            client.admin().cluster().execute(MainAction.INSTANCE, mainRequest, mainResponseActionListener);
         }
 
-        protected NodePrometheusMetricsResponse buildResponse(ClusterHealthResponse clusterHealth,
+        protected NodePrometheusMetricsResponse buildResponse(MainResponse mainResponse, 
+                                                              ClusterHealthResponse clusterHealth,
                                                               NodesInfoResponse localNodesInfoResponse,
                                                               NodesStatsResponse nodesStats,
                                                               @Nullable IndicesStatsResponse indicesStats,
                                                               @Nullable ClusterStateResponse clusterStateResponse) {
             NodePrometheusMetricsResponse response = new NodePrometheusMetricsResponse(
+                    mainResponse,
                     clusterHealth,
                     localNodesInfoResponse,
                     nodesStats.getNodes().toArray(new NodeStats[0]),
