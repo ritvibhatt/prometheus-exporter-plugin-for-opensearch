@@ -27,7 +27,7 @@ This repository contains two projects that are related, but each can be used ind
 
 ## Introduction
 
-This plugin was started as a fork of [Prometheus exporter for Elasticsearch®](https://github.com/vvanholl/elasticsearch-prometheus-exporter) (it was forked in version 7.10.2.0; commit hash: [8dc7f85](https://github.com/vvanholl/elasticsearch-prometheus-exporter/commit/8dc7f85109fe1601a68010e9de598a9b131afd02)) utilizing [OpenSearch plugin template](https://github.com/opensearch-project/opensearch-plugin-template-java). It uses the official [Prometheus Java Simpleclient](https://github.com/prometheus/client_java/tree/master/simpleclient).
+This plugin was started as a fork of [Prometheus exporter for Elasticsearch®](https://github.com/vvanholl/elasticsearch-prometheus-exporter) (it was forked in version 7.10.2.0; commit hash: [8dc7f85](https://github.com/vvanholl/elasticsearch-prometheus-exporter/commit/8dc7f85109fe1601a68010e9de598a9b131afd02)) utilizing [OpenSearch plugin template](https://github.com/opensearch-project/opensearch-plugin-template-java). It uses the official [Prometheus Java Simpleclient](https://github.com/prometheus/client_java/tree/simpleclient).
 
 **Currently, the available metrics are:**
 
@@ -43,10 +43,10 @@ This plugin was started as a fork of [Prometheus exporter for Elasticsearch®](h
     - File System
     - Circuit Breaker
 - Indices status
-- Cluster settings (notably [disk watermarks](https://opensearch.org/docs/latest/opensearch/popular-api/#change-disk-watermarks-or-other-cluster-settings) that can be updated dynamically)
+- Cluster settings (notably [disk watermarks](https://docs.opensearch.org/docs/latest/install-and-configure/configuring-opensearch/cluster-settings/#cluster-level-routing-and-allocation-settings) that can be updated dynamically)
 
 ## Compatibility Matrix
-NOTE: OpenSearch plugins much match _exactly_ in major.minor.path version to the OpenSearch instance it's running in, e.g. plugins versions 2.8.0.x work only with OpenSearch 2.8.0, see also [Opensearch Plugins](https://opensearch.org/docs/latest/install-and-configure/plugins/#available-plugins). Therefore you must keep your [prometheus-exporter-plugin-for-opensearch version](https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases) in sync with your OpenSearch version.
+NOTE: OpenSearch plugins much match _exactly_ in major.minor.path version to the OpenSearch instance it's running in, e.g. plugins versions 2.8.0.x work only with OpenSearch 2.8.0, see also [Opensearch Plugins](https://docs.opensearch.org/docs/latest/install-and-configure/plugins/). Therefore you must keep your [opensearch-prometheus-exporter version](https://github.com/opensearch-project/opensearch-prometheus-exporter/releases) in sync with your OpenSearch version.
 
 | OpenSearch |      Plugin |  Release date |
 |-----------:|------------:|--------------:|
@@ -105,13 +105,13 @@ You need to install the plugin on every OpenSearch node that will be scraped by 
 
 To **install** the plugin:
 
-`./bin/opensearch-plugin install https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/2.17.1.0/prometheus-exporter-2.17.1.0.zip`
+`./bin/opensearch-plugin install https://github.com/opensearch-project/opensearch-prometheus-exporter/releases/download/2.17.1.0/prometheus-exporter-2.17.1.0.zip`
 
 To **remove** the plugin.
 
 `./bin/opensearch-plugin remove prometheus-exporter`
 
-For more info about plugin CLI, visit: <https://opensearch.org/docs/latest/opensearch/install/plugins/>
+For more info about plugin CLI, visit: <https://docs.opensearch.org/docs/latest/install-and-configure/plugins/>
 
 ## Plugin Configuration
 
@@ -130,7 +130,7 @@ prometheus.metric_name.prefix: "opensearch_"
 
 ### Dynamic settings
 
-Dynamic settings are configured in `config/opensearch.yml` but they can also be [updated](https://opensearch.org/docs/latest/install-and-configure/configuring-opensearch/index/#updating-cluster-settings-using-the-api) at any time via REST API.
+Dynamic settings are configured in `config/opensearch.yml` but they can also be [updated](https://docs.opensearch.org/docs/latest/api-reference/cluster-api/cluster-settings/#update-cluster-setting) at any time via REST API.
 
 #### Index level metrics
 
@@ -158,7 +158,7 @@ Metrics include statistics about individual OpenSearch nodes.
 By default, only statistics from the node that received the request are included.
 
 Prometheus exporter can be configured to include statistics from other nodes as well.
-This filter is directly utilizing OpenSearch [Node filters](https://opensearch.org/docs/latest/api-reference/nodes-apis/index/#node-filters) feature.
+This filter is directly utilizing OpenSearch [Node filters](https://docs.opensearch.org/docs/latest/api-reference/nodes-apis/index/#node-filters) feature.
 Default value: `"_local"`.
 
 For example to get stats for all cluster nodes from any node use settings:
@@ -311,3 +311,7 @@ limitations under the License.
 ## Trademarks & Attributions
 
 Prometheus is a registered trademark of The Linux Foundation. OpenSearch is a registered trademark of Amazon Web Services. Elasticsearch is a registered trademark of Elasticsearch BV.
+
+We gratefully thank all the contributors from the [Aiven organization](https://github.com/Aiven-Open) for their work on this project prior to its migration to the OpenSearch organization.
+
+

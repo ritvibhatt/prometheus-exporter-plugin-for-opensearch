@@ -140,7 +140,7 @@ public class RestPrometheusMetricsAction extends BaseRestHandler {
                             // This is useful when metric_prefix value is not valid or when metric collector fails
                             // generating text content. We may be able to get rid of this try-catch pattern
                             // once we implement robust verification of custom metric prefix.
-                            // See https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/issues/11
+                            // See https://github.com/opensearch-project/opensearch-prometheus-exporter/issues/11
                             logger.debug("Prometheus metric catalog processing failed", ex);
                             throw ex;
                         }
