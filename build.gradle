@@ -74,6 +74,10 @@ repositories {
     jcenter()
 }
 
+configurations.all {
+    resolutionStrategy.force 'com.google.errorprone:error_prone_annotations:2.28.0'
+}
+
 dependencies {
 // Deprecated in Gradle 6.8.1, use "implementation" instead
 // See https://docs.gradle.org/6.8.1/userguide/java_plugin.html#sec:java_plugin_and_dependency_management
